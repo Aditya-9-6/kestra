@@ -103,7 +103,6 @@
   "packages/hey-api-plugin/src/plugin.ts": 13,
   "packages/hey-api-plugin/src/runtime.ts": 12,
   "packages/hey-api-plugin/src/types.d.ts": 1,
-  "packages/kestra-sdk/src/client-facade.ts": 28,
   "src/components/docs/ContextChildCard.vue": 2,
   "src/components/docs/ContextDocs.vue": 3,
   "src/components/docs/ContextDocsMenu.vue": 1,
