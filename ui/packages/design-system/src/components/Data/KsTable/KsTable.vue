@@ -80,6 +80,9 @@
         setCurrentRow: (row: any) => tableRef.value?.setCurrentRow(row),
         clearSort: () => tableRef.value?.clearSort(),
         sort: (prop: string, order: string) => tableRef.value?.sort(prop, order),
+        setScrollTop: (top?: number) => tableRef.value?.setScrollTop(top),
+        setScrollLeft: (left?: number) => tableRef.value?.setScrollLeft(left),
+        scrollTo: (options: ScrollToOptions | number, yCoord?: number) => tableRef.value?.scrollTo(options as any, yCoord),
     })
 </script>
 

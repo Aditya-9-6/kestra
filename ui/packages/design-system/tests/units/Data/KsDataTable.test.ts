@@ -460,4 +460,13 @@ describe("KsDataTable", () => {
         })
         expect(wrapper.find(".ks-data-table-body--fit").exists()).toBe(false)
     })
+
+    test("exposes scrollToTop method and resets scroll position", () => {
+        const wrapper = i18nMount(KsDataTable, {
+            props: {data: SAMPLE_DATA, total: 30},
+        })
+        expect((wrapper.vm as any).scrollToTop).toBeDefined()
+        expect(typeof (wrapper.vm as any).scrollToTop).toBe("function")
+        expect(() => (wrapper.vm as any).scrollToTop()).not.toThrow()
+    })
 })

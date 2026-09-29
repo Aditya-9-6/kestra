@@ -13,7 +13,7 @@
                 <slot name="top" />
             </div>
 
-            <div v-if="hasTableSlot" class="ks-data-table-content ks-data-table-content--slot">
+            <div v-if="hasTableSlot" ref="container" class="ks-data-table-content ks-data-table-content--slot">
                 <slot name="table" />
             </div>
 
@@ -419,15 +419,26 @@
 
     watch([currentPageValue, currentSizeValue, loadRequest], () => callLoad(), {flush: "post"})
 
+    const scrollToTop = () => {
+        tableRef.value?.setScrollTop(0)
+        container.value?.scrollTo({top: 0})
+        if (typeof window !== "undefined") {
+            window.scrollTo({top: 0})
+            document.querySelector("main")?.scrollTo({top: 0})
+        }
+    }
+
     const onPageChange = (page: number) => {
         emit("update:currentPage", page)
         emit("page-changed", {page, size: currentSizeValue.value})
+        scrollToTop()
     }
 
     const onSizeChange = (size: number) => {
         emit("update:currentPage", 1)
         emit("update:pageSize", size)
         emit("page-changed", {page: 1, size})
+        scrollToTop()
     }
 
     const onSortChange = (sort: {column: any; prop: string | null; order: string | null}) => {
@@ -455,6 +466,7 @@
         toggleAllSelection,
         queryBulkAction,
         selection: mappedSelection,
+        scrollToTop,
     })
 </script>
 
