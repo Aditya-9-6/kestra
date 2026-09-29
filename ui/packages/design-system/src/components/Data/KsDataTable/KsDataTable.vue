@@ -99,21 +99,21 @@
     const MAX_PAGE = 1_000_000
 
     const props = withDefaults(defineProps<{
-        data?: any[]
+        data?: unknown[]
         total?: number
         currentPage?: number
         pageSize?: number
         loading?: boolean
         selectable?: boolean
-        rowSelectable?: (row: any, index: number) => boolean
+        rowSelectable?: (row: unknown, index: number) => boolean
         showSelection?: boolean
-        rowKey?: string | ((row: any) => string)
+        rowKey?: string | ((row: unknown) => string)
         noDataText?: string
         noDataDescription?: string
         pageSizeOptions?: number[]
         loadData?: (params: {page: number; size: number; sort?: string}) => void | Promise<void>
         sortKeyMapper?: (key: string) => string
-        selectionMapper?: (element: any) => any
+        selectionMapper?: (element: unknown) => unknown
         forceExpandedRowKeys?: string[]
         noPaginationGutter?: boolean
         noGutter?: boolean
@@ -145,7 +145,7 @@
     })
 
     export interface SortItem {
-        column: any; 
+        column: unknown; 
         prop: string | null; 
         order: string | null
     }
@@ -156,9 +156,9 @@
         "update:currentPage": [page: number]
         "update:pageSize": [size: number]
         "sort-change": [sort: SortItem]
-        "selection-change": [selection: any[]]
-        "row-click": [row: any, column: any, event: Event]
-        "row-dblclick": [row: any, column: any, event: Event]
+        "selection-change": [selection: unknown[]]
+        "row-click": [row: unknown, column: unknown, event: Event]
+        "row-dblclick": [row: unknown, column: unknown, event: Event]
         "ready": []
         "loaded": []
         "load-error": [error: unknown]
@@ -192,16 +192,16 @@
 
     const composedRowClassName = computed(() => {
         const forced = new Set(props.forceExpandedRowKeys ?? [])
-        const userClass = attrs.rowClassName as ((arg: any) => string) | string | undefined
+        const userClass = attrs.rowClassName as ((arg: {row: unknown}) => string) | string | undefined
 
         if (!forced.size && !userClass) return undefined
 
-        return (arg: {row: any}) => {
+        return (arg: {row: unknown}) => {
             const base = typeof userClass === "function" ? userClass(arg) : (userClass ?? "")
             if (!forced.size) return base
             const key = typeof props.rowKey === "function"
-                ? (props.rowKey as (row: any) => string)(arg.row)
-                : (arg.row as any)?.[props.rowKey as string]
+                ? (props.rowKey as (row: unknown) => string)(arg.row)
+                : (arg.row as Record<string, unknown>)?.[props.rowKey as string]
             return [base, forced.has(String(key)) ? "ks-row-force-expanded" : ""].filter(Boolean).join(" ")
         }
     })
@@ -230,7 +230,7 @@
     const lastCheckedIndex = ref<number | null>(null)
     const isShiftPressed = ref(false)
     const queryBulkAction = ref(false)
-    const mappedSelection = ref<any[]>([])
+    const mappedSelection = ref<unknown[]>([])
 
     const pageSelectableCount = computed(() => {
         if (!props.rowSelectable) {
@@ -246,10 +246,10 @@
             : props.total,
     )
 
-    const selectionChanged = (rawSelection: any[]) => {
+    const selectionChanged = (rawSelection: unknown[]) => {
         hasSelection.value = rawSelection.length > 0
 
-        const mapper = props.selectionMapper ?? ((e: any) => e)
+        const mapper = props.selectionMapper ?? ((e: unknown) => e)
         mappedSelection.value = rawSelection.map(mapper)
 
         if (queryBulkAction.value && props.data && rawSelection.length < pageSelectableCount.value) {
@@ -259,15 +259,15 @@
         emit("selection-change", rawSelection)
     }
 
-    const onSelect = async (selection: any[], row: any) => {
+    const onSelect = async (selection: unknown[], row: unknown) => {
         const data = props.data ?? []
         const currentIndex = data.indexOf(row)
         const rowKey = props.rowKey
 
         const isChecked = selection.some(s =>
             typeof rowKey === "function"
-                ? rowKey(s) === rowKey(row)
-                : s[rowKey as string] === row[rowKey as string],
+                ? (rowKey as (row: unknown) => string)(s) === (rowKey as (row: unknown) => string)(row)
+                : (s as Record<string, unknown>)[rowKey as string] === (row as Record<string, unknown>)[rowKey as string],
         )
 
         if (isShiftPressed.value && lastCheckedIndex.value !== null) {
@@ -297,21 +297,21 @@
         queryBulkAction.value = false
     }
 
-    const setSelection = (selection: any[]) => {
+    const setSelection = (selection: unknown[]) => {
         tableRef.value?.clearSelection()
         if (Array.isArray(selection)) {
             const isFunction = typeof props.rowKey === "function"
             selection.forEach(sel => {
                 const row = props.data.find(r => isFunction
-                    ? (props.rowKey as (row: any) => any)(r) === (props.rowKey as (row: any) => any)(sel)
-                    : r[props.rowKey as string] === sel[props.rowKey as string])
+                    ? (props.rowKey as (row: unknown) => unknown)(r) === (props.rowKey as (row: unknown) => unknown)(sel)
+                    : (r as Record<string, unknown>)[props.rowKey as string] === (sel as Record<string, unknown>)[props.rowKey as string])
                 if (row) tableRef.value?.toggleRowSelection(row, true)
             })
         }
         selectionChanged(selection)
     }
 
-    const toggleRowExpansion = (row: any, expand?: boolean) => {
+    const toggleRowExpansion = (row: unknown, expand?: boolean) => {
         tableRef.value?.toggleRowExpansion(row, expand)
     }
 
@@ -402,8 +402,8 @@
             const validSelection = currentSelection.filter((sel: unknown) => {
                 const isFunction = typeof rowKey === "function"
                 return props.data.some(r => isFunction
-                    ? (rowKey as (row: any) => any)(r) === (rowKey as (row: any) => any)(sel)
-                    : r[rowKey as string] === (sel as Record<string, unknown>)[rowKey as string])
+                    ? (rowKey as (row: unknown) => unknown)(r) === (rowKey as (row: unknown) => unknown)(sel)
+                    : (r as Record<string, unknown>)[rowKey as string] === (sel as Record<string, unknown>)[rowKey as string])
             })
             if (validSelection.length !== currentSelection.length) {
                 tableRef.value?.clearSelection()
@@ -430,7 +430,7 @@
         emit("page-changed", {page: 1, size})
     }
 
-    const onSortChange = (sort: {column: any; prop: string | null; order: string | null}) => {
+    const onSortChange = (sort: SortItem) => {
         if (sort.prop && sort.order) {
             const key = props.sortKeyMapper?.(sort.prop) ?? sort.prop
             internalSort.value = `${key}:${sort.order === "descending" ? "desc" : "asc"}`
