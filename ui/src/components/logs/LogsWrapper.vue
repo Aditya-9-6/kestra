@@ -152,7 +152,7 @@
     import type {LevelFilterValue} from "@kestra-io/design-system"
     import * as YAML_UTILS from "@kestra-io/topology/flow-yaml-utils"
     import YAML_CHART from "../dashboard/assets/logs_timeseries_chart.yaml?raw"
-    import {useLogsStore} from "../../stores/logs"
+    import {useLogsStore, type Log} from "../../stores/logs"
     import useRouteContext from "../../composables/useRouteContext"
     import * as Utils from "../../utils/utils"
     import {useToast} from "../../utils/toast"
@@ -167,7 +167,7 @@
         logLevel?: string;
         embed?: boolean;
         showFilters?: boolean;
-        filters?: Record<string, any>;
+        filters?: Record<string, unknown>;
         reloadLogs?: number;
         namespace?: string | null;
         restoreurl?: boolean;
@@ -186,6 +186,7 @@
 
     const route = useRoute()
     const router = useRouter()
+    import type {LocationQueryRaw} from "vue-router"
     const {t} = useI18n()
     const toast = useToast()
     const logsStore = useLogsStore()
@@ -275,9 +276,9 @@
         return chart ? [{...chart, content: YAML_CHART}] : []
     })
 
-    const loadQuery = (base: any) => {
+    const loadQuery = (base: Record<string, unknown>) => {
         const {page: _p, size: _s, sort: _so, logsPage: _lp, logsSize: _ls, ...routeFilters} = route.query
-        let queryFilter = props.filters ?? {...routeFilters}
+        let queryFilter: Record<string, unknown> = props.filters ? {...props.filters} : {...routeFilters}
 
         if (isFlowEdit.value) {
             queryFilter["filters[namespace][EQUALS]"] = routeNamespace.value
@@ -350,7 +351,7 @@
             page: _p, size: _s, sort: _so, logsPage: _lp, logsSize: _ls,
             level: _l, startDate: _sd, endDate: _ed, ...routeFilters
         } = route.query
-        const params: Record<string, any> = props.filters ? {...props.filters} : {...routeFilters}
+        const params: Record<string, unknown> = props.filters ? {...props.filters} : {...routeFilters}
 
         if (isFlowEdit.value) {
             params["filters[namespace][EQUALS]"] = routeNamespace.value
@@ -420,13 +421,13 @@
     }
 
     const selectLevel = (level: string) => {
-        const query: Record<string, any> = {...route.query}
+        const query: Record<string, unknown> = {...route.query}
         Object.keys(query)
             .filter((key) => key.startsWith("filters[level]"))
             .forEach((key) => delete query[key])
         query["filters[level][GREATER_THAN_OR_EQUAL_TO]"] = level
         query[pageKey] = "1"
-        router.push({query})
+        router.push({query: query as LocationQueryRaw})
     }
 
     const onValueFilter = ({field, value, negate}: {field: string; value: string; negate: boolean}) => {
@@ -436,7 +437,7 @@
 
     const copyAllLogs = () => {
         const text = (logsStore.logs ?? [])
-            .map((l: any) => `${(l.level ?? "").padEnd(5)} ${l.timestamp} ${(l.message ?? "").replace(/\s+$/, "")}`)
+            .map((l: Log) => `${(l.level ?? "").padEnd(5)} ${l.timestamp} ${(l.message ?? "").replace(/\s+$/, "")}`)
             .join("\n")
         Utils.copy(text)
         toast.success(t("logs_copied"))

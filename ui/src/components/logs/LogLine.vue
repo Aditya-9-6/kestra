@@ -57,7 +57,7 @@
     import {LevelKey, parseStructured} from "../../utils/logs"
     import {logsFontSize, logsDensity, logsBodyClamp, logsPrettyJson, logsExpandByDefault, DENSITY_PADDING} from "../../composables/useLogDisplay"
     import {Log} from "../../stores/logs"
-    import {useRouter} from "vue-router"
+    import {useRouter, type RouteLocationRaw} from "vue-router"
     import * as Filters from "../../utils/filters"
 
 
@@ -101,8 +101,14 @@
         }
     })
 
-    const metaWithValue = computed(() => {
-        const result: any[] = []
+    interface LogMetaItem {
+        key: keyof Log
+        value: Log[keyof Log]
+        router?: RouteLocationRaw
+    }
+
+    const metaWithValue = computed<LogMetaItem[]>(() => {
+        const result: LogMetaItem[] = []
         const excludes:(keyof Log)[] = [
             "message",
             "timestamp",
@@ -117,9 +123,9 @@
         for (const keyString in props.log) {
             const key = keyString as keyof Log
             if (props.log[key] && !excludes.includes(key)) {
-                let meta: any = {key, value: props.log[key]}
+                const meta: LogMetaItem = {key, value: props.log[key]}
                 if (key === "executionId") {
-                    meta["router"] = {
+                    meta.router = {
                         name: "executions/update",
                         params: {
                             namespace: props.log["namespace"],
@@ -129,10 +135,10 @@
                     }
                 }
                 if (key === "namespace") {
-                    meta["router"] = {name: "flows/list", query: {namespace: props.log[key]}}
+                    meta.router = {name: "flows/list", query: {namespace: props.log[key]}}
                 }
                 if (key === "flowId") {
-                    meta["router"] = {
+                    meta.router = {
                         name: "flows/update",
                         params: {namespace: props.log["namespace"], id: props.log[key]},
                     }
