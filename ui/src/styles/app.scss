@@ -119,6 +119,11 @@ main {
         td.kel-table__cell:first-child > .cell {
             padding-left: var(--ks-spacing-5);
         }
+
+        th.kel-table__cell:last-child > .cell,
+        td.kel-table__cell:last-child > .cell {
+            padding-right: var(--ks-spacing-5);
+        }
     }
 
 

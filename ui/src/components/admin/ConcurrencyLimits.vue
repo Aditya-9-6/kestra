@@ -8,6 +8,7 @@
                 <KsTable
                     :data="data?.results"
                     stripe
+                    class="full-width-table"
                 >
                     <KsTableColumn
                         v-for="k in KEYS"
